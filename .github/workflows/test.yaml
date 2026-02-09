@@ -1,0 +1,53 @@
+name: test
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+on:
+  pull_request: { types: [opened, reopened, synchronize, ready_for_review] }
+  push: { branches: [main] }
+
+jobs:
+  find-examples:
+    runs-on: ubuntu-latest
+    outputs:
+      examples: ${{ steps.find-examples.outputs.examples }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Find examples
+        id: find-examples
+        run: |
+          find ./ -maxdepth 2 -name Package.swift -type f -print0 \
+          | xargs -0 dirname \
+          | jq -Rrs 'split("\n") | map(select(length > 0)) | @json | "examples=\(.)"' \
+          | tee -a $GITHUB_OUTPUT # format: examples=["a", "b"]
+
+  test-examples:
+    name: ${{ matrix.example }} - Swift ${{ matrix.swift.version }}
+    runs-on: ubuntu-latest
+    needs: find-examples
+    strategy:
+      matrix:
+        example: ${{ fromJSON(needs.find-examples.outputs.examples) }}
+        swift:
+          - version: "6.2"
+            image: swift:6.2
+      fail-fast: false
+    container:
+      image: ${{ matrix.swift.image }}
+    defaults:
+      run:
+        working-directory: ${{ matrix.example }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build
+        run: swift build
+      - name: Check for tests
+        id: check-for-tests
+        run: |
+          if test -d Tests/; then
+            echo "example_has_tests=true" | tee -a $GITHUB_OUTPUT
+          fi
+      - name: Run tests
+        if: steps.check-for-tests.outputs.example_has_tests == 'true'
+        run: swift test
