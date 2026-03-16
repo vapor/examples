@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "jwt-key-rotation",
     platforms: [
-        .macOS(.v15)
+        .macOS(.v15),
     ],
     products: [
         .library(
@@ -13,20 +13,20 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/vapor/jwt-kit.git", from: "5.4.0")
+        .package(url: "https://github.com/vapor/jwt-kit.git", from: "5.4.0"),
     ],
     targets: [
         .target(
             name: "JWTKeyRotation",
             dependencies: [
-                .product(name: "JWTKit", package: "jwt-kit")
+                .product(name: "JWTKit", package: "jwt-kit"),
             ]
         ),
         .testTarget(
             name: "JWTKeyRotationTests",
             dependencies: [
-                "JWTKeyRotation",
                 .product(name: "JWTKit", package: "jwt-kit"),
+                .target(name: "JWTKeyRotation"),
             ]
         ),
     ]
