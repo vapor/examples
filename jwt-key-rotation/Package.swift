@@ -13,7 +13,7 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/vapor/jwt-kit.git", branch: "key-removal")
+        .package(url: "https://github.com/vapor/jwt-kit.git", from: "5.4.0")
     ],
     targets: [
         .target(
