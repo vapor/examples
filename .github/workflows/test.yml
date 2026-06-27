@@ -1,11 +1,12 @@
 name: test
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 on:
   pull_request: { types: [opened, reopened, synchronize, ready_for_review] }
   push: { branches: [main] }
+permissions:
+  contents: read
 
 jobs:
   find-examples:
@@ -13,7 +14,7 @@ jobs:
     outputs:
       examples: ${{ steps.find-examples.outputs.examples }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Find examples
         id: find-examples
         run: |
@@ -30,8 +31,8 @@ jobs:
       matrix:
         example: ${{ fromJSON(needs.find-examples.outputs.examples) }}
         swift:
-          - version: "6.2"
-            image: swift:6.2
+          - version: "6.3"
+            image: swift:6.3
       fail-fast: false
     container:
       image: ${{ matrix.swift.image }}
@@ -39,7 +40,7 @@ jobs:
       run:
         working-directory: ${{ matrix.example }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Build
         run: swift build
       - name: Check for tests
